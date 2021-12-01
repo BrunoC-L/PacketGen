@@ -1,7 +1,7 @@
 # PacketGen
 C++ Serialization Code Generator in Python.
 
-Generates Classes capable of Serialization/Deserialization using `std::istream&` and `std::ostream&`, see `membuf.h` to stream directly into a char array.
+Generates Classes capable of Serialization/Deserialization using `std::istream&` and `std::ostream&`, see [membuf.h](https://github.com/BrunoC-L/boost-asio-tcp-1_77-example/blob/main/src/util/membuf.h) to stream directly into a char array.
 
 ## Usage
 
