@@ -9,7 +9,7 @@ Simply run with `python packet-gen.py <input file name> <client output file name
 
 ### Example Input file content
 
-So far, the only base cases supported are `primitives` defined in [constants.py](https://github.com/BrunoC-L/) and arrays (transpiled into vectors).
+So far, the only base cases supported are `primitives` defined in [constants.py](https://github.com/BrunoC-L/PacketGen/blob/main/src/constants.py.txt) and arrays (transpiled into vectors).
 
 ```
 Players
@@ -21,26 +21,11 @@ Player
 		u16
 	name
 		str
-    friends
-        str[]
+	friends
+        	str[]
 	pos
 		PlayerPosition
-
-PlayerPosition
-	x
-		u16
-	y
-		u16
-	z
-		u8
-    
-LoginC2S
-    username
-        str
-    password
-        str
-
-LoginConfirmS2C
+...
 ```
 
 ## What does it do exactly?
