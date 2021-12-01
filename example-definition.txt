@@ -1,0 +1,29 @@
+Players
+	players
+		Player[]
+
+Player
+	id
+		u16
+	name
+		str
+    friends
+        str[]
+	pos
+		PlayerPosition
+
+PlayerPosition
+	x
+		u16
+	y
+		u16
+	z
+		u8
+
+LoginC2S
+    username
+        str
+    password
+        str
+
+LoginConfirmS2C
