@@ -3,6 +3,10 @@ C++ Serialization Code Generator in Python.
 
 Generates Classes capable of Serialization/Deserialization using `std::istream&` and `std::ostream&`, see [membuf.h](https://github.com/BrunoC-L/boost-asio-tcp-1_77-example/blob/main/src/util/membuf.h) to stream directly into a char array.
 
+## Warning
+
+Will not work if you serialize and deserialize from little/big endian to big/little endian.
+
 ## Usage
 
 Simply run with `python packet-gen.py <input file name> <client output file name> <server output file name>`
