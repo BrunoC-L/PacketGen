@@ -9,7 +9,7 @@ Will not work if you serialize and deserialize from little/big endian to big/lit
 
 ## Usage
 
-Simply run with `python packet-gen.py <input file name> <client output file name> <server output file name>`
+Simply run with `python packet-gen.py <input file name> <client output file name> <server output file name>` or `python packet-gen.py --single <input file name> <client output file name>`. see [lower](https://github.com/BrunoC-L/PacketGen#what-does-it-do-exactly) for details about the client/server mode vs the single mode.
 
 ### Example Input file content
 
@@ -40,5 +40,4 @@ A typed subscription system through a dispatcher is also generated, when deseria
 
 ## Possible extentions
 
-- Generating a single header with the client version of the dispatcher for non-client-server application use cases.
 - Calculating the size of a packet before streaming it, allowing for allocating precisely the required array size.
