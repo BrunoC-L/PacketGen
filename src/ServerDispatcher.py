@@ -4,7 +4,7 @@ def containers(types):
             f'std::vector<std::function<void(Sender& sender, const {T["name"]}&)>> on{T["name"]};', types)))
 
 def cases(types):
-    return '\n\t\t\t'.join(list(map(lambda T: f'case {T["name"]}::type:\n\t\t\t\tdispatch(_STREAM, len - 1, sender, on{T["name"]});\n\t\t\t\treturn;', types)))
+    return '\n\t\t\t'.join(list(map(lambda T: f'case {T["name"]}::type:\n\t\t\t\tdispatch(_STREAM, len, sender, on{T["name"]});\n\t\t\t\treturn;', types)))
 
 def serverDispatcher(types):
     return '''

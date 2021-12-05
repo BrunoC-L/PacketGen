@@ -81,16 +81,19 @@ def bytesPerType(T):
 def mutateLengths(strFields, lenMethod):
     return '\n'.join(list(map(lambda field: f'_length_{field["name"]} = {field["name"]}.{lenMethod}();', strFields)))
 
-def readWriteIntFields(op, intFields, stringFields, strVectorFields, customVectorFields):
+def writeIntFields(intFields, stringFields, strVectorFields, customVectorFields):
     size = sum([bytesPerType(f['fields'][0]['name']) for f in intFields]) + len(stringFields + strVectorFields + customVectorFields)
     return  mutateLengths(stringFields, 'length') + '\n\t\t' + \
             mutateLengths(strVectorFields, 'size') + '\n\t\t' + \
-            mutateLengths(customVectorFields, 'size') + '\n\t\t' + \
-            ('' if op == 'write' else \
-                f'if (_STREAM.tellg().operator+({size}) > _STREAM_LENGTH)' + " {\n\t\t\t" + \
-                f'std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",\" + std::to_string({size})+ \",\" + std::to_string(_STREAM_LENGTH);\n\t\t\t' + \
-                'throw std::out_of_range(ERRMSG);\n\t\t}\n\t\t') + \
-            f'_STREAM.{op}((char*)this, {size});'
+            mutateLengths(customVectorFields, 'size') + '\n\t\t'+ \
+            f'_STREAM.write((char*)this, {size});'
+
+def readIntFields(intFields, stringFields, strVectorFields, customVectorFields):
+    size = sum([bytesPerType(f['fields'][0]['name']) for f in intFields]) + len(stringFields + strVectorFields + customVectorFields)
+    return  f'if (_STREAM.tellg().operator+({size}) > _STREAM_LENGTH)' + " {\n\t\t\t" + \
+            f'std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",\" + std::to_string({size})+ \",\" + std::to_string(_STREAM_LENGTH);\n\t\t\t' + \
+             'throw std::out_of_range(ERRMSG);\n\t\t}\n\t\t' + \
+            f'_STREAM.read((char*)this, {size});'
 
 def readStrField(strField):
     return "{\n\t\t\t" + \
@@ -214,8 +217,10 @@ public:
     .replace('<to stream>', '' if not writableToStream else '''
     template <bool writeType>
     uint16_t write(std::ostream& _STREAM) const {
+        uint16_t _tellp_beg;
         if constexpr (writeType) {
-            _STREAM.seekp(2);
+            _tellp_beg = _STREAM.tellp();
+            _STREAM.seekp(2); // 2 bytes for size
             _STREAM.write((char*)&type, 1);
         }
         <write int fields>
@@ -224,10 +229,10 @@ public:
         <write custom fields>
         <write custom[] fields>
         if constexpr (writeType) {
-            uint16_t size = _STREAM.tellp().operator-(2);
-            _STREAM.seekp(0);
+            uint16_t size = _STREAM.tellp().operator-(2 + _tellp_beg); // remove 2 bytes storing the size itself
+            _STREAM.seekp(_tellp_beg);
             _STREAM.write((char*)&size, 2);
-            return size + 2;
+            return size + 2; // total length includes 2 bytes for size
         }
         return -1;
     }''')
@@ -241,12 +246,12 @@ public:
     .replace('<declare custom[] fields>', declareTFields(customVectorFields))\
     .replace('<constructor params>', constructorParams(intFields, stringFields, customFields))\
     .replace('<initializers and body or default>', initializers(intFields, stringFields, customFields))\
-    .replace('<read int fields>', readWriteIntFields('read', intFields, stringFields, strVectorFields, customVectorFields))\
+    .replace('<read int fields>', readIntFields(intFields, stringFields, strVectorFields, customVectorFields))\
     .replace('<read str fields>', readStrFields(stringFields))\
     .replace('<read str[] fields>', readStrVecFields(strVectorFields))\
     .replace('<read custom fields>', readCustomFields(customFields))\
     .replace('<read custom[] fields>', readCustomVecFields(customVectorFields))\
-    .replace('<write int fields>', readWriteIntFields('write', intFields, stringFields, strVectorFields, customVectorFields))\
+    .replace('<write int fields>', writeIntFields(intFields, stringFields, strVectorFields, customVectorFields))\
     .replace('<write str fields>', writeStrFields(stringFields))\
     .replace('<write str[] fields>', writeStrVecFields(strVectorFields))\
     .replace('<write custom fields>', writeCustomFields(customFields))\

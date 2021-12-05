@@ -10,7 +10,12 @@ if len(sys.argv) != 4:
     exit(1)
 
 args = sys.argv[1:]
-[inputfilename, clientfilename, serverfilename] = args[0:3]
+if args[0] == '--single':
+    mode = 1
+    [inputfilename, clientfilename] = args[1:3]
+else:
+    mode = 2
+    [inputfilename, clientfilename, serverfilename] = args[0:3]
 
 f = open(inputfilename)
 lines = f.readlines() + ['\n']
@@ -37,22 +42,6 @@ def MakeWriteOnlyClass(T):
 def MakeReadWriteClass(T):
     return MakeClass(T, True, True)
 
-ClientClasses = [
-        MakeReadOnlyClass (T) for T in types if isServerToClientOnly(T)
-    ] + [
-        MakeWriteOnlyClass(T) for T in types if isClientToServerOnly(T)
-    ] + [
-        MakeReadWriteClass(T) for T in types if isBoth(T)
-    ]
-
-ServerClasses = [
-        MakeReadOnlyClass (T) for T in types if isClientToServerOnly(T)
-    ] + [
-        MakeWriteOnlyClass(T) for T in types if isServerToClientOnly(T)
-    ] + [
-        MakeReadWriteClass(T) for T in types if isBoth(T)
-    ]
-
 disclaimer = '''
 
  /*************************************************************\ 
@@ -69,16 +58,42 @@ disclaimer = '''
 includes = '#pragma once\n#include <vector>\n#include <fstream>\n#include <string>\n#include <functional>\n\n'
 namespace = lambda ns: f'namespace {ns} ' + '{\n'
 
-with open(serverfilename, 'w+') as f:
-    f.write(disclaimer + includes + namespace("NS_Server"))
-    for C in ServerClasses:
-        f.write(C)
-        f.write('\n')
-    f.write(ServerDispatcher([T for T in types if isClientToServerOnly(T) or isBoth(T)]) + "};\n")
+if mode == 1:
+    ClientClasses = [MakeReadWriteClass(T) for T in types]
+    with open(clientfilename, 'w+') as f:
+        f.write(disclaimer + includes)
+        for C in ClientClasses:
+            f.write(C)
+            f.write('\n')
+        f.write(ClientDispatcher(types))
 
-with open(clientfilename, 'w+') as f:
-    f.write(disclaimer + includes + namespace("NS_Client"))
-    for C in ClientClasses:
-        f.write(C)
-        f.write('\n')
-    f.write(ClientDispatcher([T for T in types if isServerToClientOnly(T) or isBoth(T)]) + "};\n")
+if mode == 2:
+    ClientClasses = [
+            MakeReadOnlyClass (T) for T in types if isServerToClientOnly(T)
+        ] + [
+            MakeWriteOnlyClass(T) for T in types if isClientToServerOnly(T)
+        ] + [
+            MakeReadWriteClass(T) for T in types if isBoth(T)
+        ]
+
+    ServerClasses = [
+            MakeReadOnlyClass (T) for T in types if isClientToServerOnly(T)
+        ] + [
+            MakeWriteOnlyClass(T) for T in types if isServerToClientOnly(T)
+        ] + [
+            MakeReadWriteClass(T) for T in types if isBoth(T)
+        ]
+
+    with open(serverfilename, 'w+') as f:
+        f.write(disclaimer + includes + namespace("NS_Server"))
+        for C in ServerClasses:
+            f.write(C)
+            f.write('\n')
+        f.write(ServerDispatcher([T for T in types if isClientToServerOnly(T) or isBoth(T)]) + "};\n")
+
+    with open(clientfilename, 'w+') as f:
+        f.write(disclaimer + includes + namespace("NS_Client"))
+        for C in ClientClasses:
+            f.write(C)
+            f.write('\n')
+        f.write(ClientDispatcher([T for T in types if isServerToClientOnly(T) or isBoth(T)]) + "};\n")
