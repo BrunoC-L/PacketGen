@@ -277,19 +277,19 @@ public:
         _STREAM.read((char*)&type, 1);
         switch (type) {
             case PlayerPosition::type:
-				dispatch(_STREAM, len, onPlayerPosition);
+				dispatch(_STREAM, len - 1, onPlayerPosition);
 				return;
 			case Player::type:
-				dispatch(_STREAM, len, onPlayer);
+				dispatch(_STREAM, len - 1, onPlayer);
 				return;
 			case Players::type:
-				dispatch(_STREAM, len, onPlayers);
+				dispatch(_STREAM, len - 1, onPlayers);
 				return;
 			case LoginC2S::type:
-				dispatch(_STREAM, len, onLoginC2S);
+				dispatch(_STREAM, len - 1, onLoginC2S);
 				return;
 			case LoginConfirmS2C::type:
-				dispatch(_STREAM, len, onLoginConfirmS2C);
+				dispatch(_STREAM, len - 1, onLoginConfirmS2C);
 				return;
         }
     }
