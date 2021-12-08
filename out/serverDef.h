@@ -28,14 +28,15 @@ public:
     LoginC2S() = default;
     LoginC2S(std::string&&  username,std::string&&  password)  : username(std::move(username)),password(std::move(password)),_length_username(username.length()),_length_password(password.length()) {}
     LoginC2S(std::istream& _STREAM, const int _STREAM_LENGTH) {
-        if (_STREAM.tellg().operator+(2) > _STREAM_LENGTH) {
+        uint16_t _tellg_beg = _STREAM.tellg();
+        if (_STREAM.tellg().operator+(2) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(2)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 		}
 		_STREAM.read((char*)this, 2);
         {
 			uint8_t L = _length_username;
-			if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH) {
+			if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(L)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 			}
@@ -47,7 +48,7 @@ public:
 		}
 {
 			uint8_t L = _length_password;
-			if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH) {
+			if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(L)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 			}
@@ -92,7 +93,8 @@ public:
     PlayerPosition() = default;
     PlayerPosition(uint16_t x,uint16_t y,uint8_t z)  : x(x),y(y),z(z) {}
     PlayerPosition(std::istream& _STREAM, const int _STREAM_LENGTH) {
-        if (_STREAM.tellg().operator+(5) > _STREAM_LENGTH) {
+        uint16_t _tellg_beg = _STREAM.tellg();
+        if (_STREAM.tellg().operator+(5) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(5)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 		}
@@ -129,14 +131,15 @@ public:
     Player() = default;
     Player(uint16_t id,std::string&&  name,PlayerPosition&&  pos)  : id(id),name(std::move(name)),pos(std::move(pos)),_length_name(name.length()) {}
     Player(std::istream& _STREAM, const int _STREAM_LENGTH) {
-        if (_STREAM.tellg().operator+(4) > _STREAM_LENGTH) {
+        uint16_t _tellg_beg = _STREAM.tellg();
+        if (_STREAM.tellg().operator+(4) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(4)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 		}
 		_STREAM.read((char*)this, 4);
         {
 			uint8_t L = _length_name;
-			if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH) {
+			if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(L)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 			}
@@ -149,12 +152,12 @@ public:
         friends.reserve(_length_friends);
         for (int i = 0; i < _length_friends; ++i) {
             uint8_t LEN;
-            if (_STREAM.tellg().operator+(1) > _STREAM_LENGTH) {
+            if (_STREAM.tellg().operator+(1) > _STREAM_LENGTH + _tellg_beg) {
                 std::string ERRMSG = std::to_string(_STREAM.tellg()) + ",1," + std::to_string(_STREAM_LENGTH);
                 throw std::out_of_range(ERRMSG);
             }
             _STREAM.read((char*)&LEN, 1);
-            if (_STREAM.tellg().operator+(LEN) > _STREAM_LENGTH) {
+            if (_STREAM.tellg().operator+(LEN) > _STREAM_LENGTH + _tellg_beg) {
                 std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(LEN)+ "," + std::to_string(_STREAM_LENGTH);
                 throw std::out_of_range(ERRMSG);
             }
@@ -201,7 +204,8 @@ public:
     std::vector<Player> players;
     Players()  = default;
     Players(std::istream& _STREAM, const int _STREAM_LENGTH) {
-        if (_STREAM.tellg().operator+(1) > _STREAM_LENGTH) {
+        uint16_t _tellg_beg = _STREAM.tellg();
+        if (_STREAM.tellg().operator+(1) > _STREAM_LENGTH + _tellg_beg) {
 			std::string ERRMSG = std::to_string(_STREAM.tellg()) + "," + std::to_string(1)+ "," + std::to_string(_STREAM_LENGTH);
 			throw std::out_of_range(ERRMSG);
 		}
