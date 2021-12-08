@@ -90,7 +90,7 @@ def writeIntFields(intFields, stringFields, strVectorFields, customVectorFields)
 
 def readIntFields(intFields, stringFields, strVectorFields, customVectorFields):
     size = sum([bytesPerType(f['fields'][0]['name']) for f in intFields]) + len(stringFields + strVectorFields + customVectorFields)
-    return  f'if (_STREAM.tellg().operator+({size}) > _STREAM_LENGTH)' + " {\n\t\t\t" + \
+    return  f'if (_STREAM.tellg().operator+({size}) > _STREAM_LENGTH + _tellg_beg)' + " {\n\t\t\t" + \
             f'std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",\" + std::to_string({size})+ \",\" + std::to_string(_STREAM_LENGTH);\n\t\t\t' + \
              'throw std::out_of_range(ERRMSG);\n\t\t}\n\t\t' + \
             f'_STREAM.read((char*)this, {size});'
@@ -98,13 +98,15 @@ def readIntFields(intFields, stringFields, strVectorFields, customVectorFields):
 def readStrField(strField):
     return "{\n\t\t\t" + \
     f"uint8_t L = _length_{strField['name']};\n\t\t\t" + \
-    f"if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH)" + " {\n\t\t\t" + \
-    'std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",\" + std::to_string(L)+ \",\" + std::to_string(_STREAM_LENGTH);\n\t\t\t' + \
-    'throw std::out_of_range(ERRMSG);\n\t\t\t}\n\t\t\t' + \
+    f"if (_STREAM.tellg().operator+(L) > _STREAM_LENGTH + _tellg_beg)" + " {\n\t\t\t" + \
+    "std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",\" + std::to_string(L)+ \",\" + std::to_string(_STREAM_LENGTH);\n\t\t\t" + \
+    "throw std::out_of_range(ERRMSG);\n\t\t\t" + \
+    "}\n\t\t\t" + \
     f"char* temp = new char[L + 1];\n\t\t\t" + \
     f"_STREAM.read(temp, L);\n\t\t\t" + \
     f"temp[L] = '\\0';\n\t\t\t" + \
-    f"{strField['name']} = temp;\n\t\tdelete[] temp;\n\t\t" + \
+    f"{strField['name']} = temp;\n\t\t" + \
+    f"delete[] temp;\n\t\t" + \
     "}\n"
 
 def readStrFields(stringFields):
@@ -133,12 +135,12 @@ def readStrVecField(strVecField):
         <NAME>.reserve(_length_<NAME>);
         for (int i = 0; i < _length_<NAME>; ++i) {
             uint8_t LEN;
-            if (_STREAM.tellg().operator+(1) > _STREAM_LENGTH) {
+            if (_STREAM.tellg().operator+(1) > _STREAM_LENGTH + _tellg_beg) {
                 std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",1,\" + std::to_string(_STREAM_LENGTH);
                 throw std::out_of_range(ERRMSG);
             }
             _STREAM.read((char*)&LEN, 1);
-            if (_STREAM.tellg().operator+(LEN) > _STREAM_LENGTH) {
+            if (_STREAM.tellg().operator+(LEN) > _STREAM_LENGTH + _tellg_beg) {
                 std::string ERRMSG = std::to_string(_STREAM.tellg()) + \",\" + std::to_string(LEN)+ \",\" + std::to_string(_STREAM_LENGTH);
                 throw std::out_of_range(ERRMSG);
             }
@@ -208,6 +210,7 @@ public:
 };
 ''' .replace('<from stream>', '' if not readableFromStream else '''
     <name>(std::istream& _STREAM, const int _STREAM_LENGTH) {
+        uint16_t _tellg_beg = _STREAM.tellg();
         <read int fields>
         <read str fields>
         <read str[] fields>
